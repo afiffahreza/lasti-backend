@@ -6,28 +6,27 @@ from schemas import userModel
 router = APIRouter()
 
 # funtion to create and assign values to the instanse of class User created
-def create_user(email, username, password):
+def create_user(username, password):
     newuser = userModel.User()
     newuser.user_id = userModel.ObjectId()
-    newuser.email = email
-    newuser.name = username
+    newuser.username = username
     newuser.password = password
     newuser.money = 0
-    newuser.plates = ["B44HA"]
+    newuser.plates = []
     return dict(newuser)
 
-def email_exists(email):
+def username_exists(username):
     user_exist = True
     if connection.db.users.find(
-        {'email': email}
+        {'username': username}
     ).count() == 0:
         user_exist = False
         return user_exist
 
-def check_login_creds(email, password):
-    if not email_exists(email):
+def check_login_creds(username):
+    if not username_exists(username):
         activeuser = connection.db.users.find(
-            {'email': email}
+            {'username': username}
         )
         for actuser in activeuser:
             actuser = dict(actuser)
@@ -39,11 +38,11 @@ def check_login_creds(email, password):
 async def signup(user: userModel.UserCreate):
     newuser = user.dict()
     user_exists = False
-    data = create_user(newuser['email'], newuser['name'], newuser['password'])
+    data = create_user(newuser['username'], newuser['password'])
 
     # Checks if an email exists from the collection of users
     if connection.db.users.find(
-        {'email': data['email']}
+        {'username': data['username']}
         ).count() > 0:
         user_exists = True
         print("USer Exists")
@@ -51,23 +50,23 @@ async def signup(user: userModel.UserCreate):
     # If the email doesn't exist, create the user
     elif user_exists == False:
         connection.db.users.insert_one(data)
-        return {"message":"User Created","email": data['email'], "name": data['name'], "pass": data['password']}
+        return {"message":"User Created","username": data['username'], "pass": data['password']}
 
 # Login endpoint
 @router.post("/login")
 async def login(user: userModel.UserLogin):
     usernow = user.dict()
     def log_user_in(creds):
-        if creds['email'] == usernow['email'] and creds['password'] == usernow['password']:
-            return {"message": creds['name'] + ' successfully logged in'}
+        if creds['username'] == usernow['username'] and creds['password'] == usernow['password']:
+            return {"message": creds['username'] + ' successfully logged in'}
         else:
-            return {"message":"Invalid credentials!!"}
+            return {"error":"Invalid Password"}
     # Read email from database to validate if user exists and checks if password matches
-    logger = check_login_creds(usernow['email'], usernow['password'])
+    logger = check_login_creds(usernow['username'])
     if bool(logger) != True:
         if logger == None:
-            logger = "Invalid Email/Password"
-            return {"message":logger}
+            logger = "Invalid Username"
+            return {"error":logger}
     else:
         status = log_user_in(logger)
-        return {"Info":status}
+        return status
