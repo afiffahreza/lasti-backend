@@ -4,6 +4,7 @@ click==7.1.2
 dnspython==2.0.0
 email-validator==1.1.2
 fastapi==0.70.0
+gunicorn
 h11==0.11.0
 idna==2.10
 mccabe==0.6.1
