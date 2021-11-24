@@ -1,10 +1,10 @@
 from fastapi import APIRouter
-from typing import Optional
+from typing import List, Optional
 import db as connection
 from bson import ObjectId
 from json import dumps
 from schematics.models import Model
-from schematics.types import StringType, EmailType
+from schematics.types import StringType, EmailType, ListType, IntType
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -14,6 +14,8 @@ class User(Model):
     email = EmailType(required=True)
     name = StringType(required=True)
     password = StringType(required=True)
+    money = IntType(required=True)
+    plates = ListType(StringType)
 
 class UserCreate(BaseModel):
     email: str
@@ -32,6 +34,8 @@ def create_user(email, username, password):
     newuser.email = email
     newuser.name = username
     newuser.password = password
+    newuser.money = 0
+    newuser.plates = ["B44HA"]
     return dict(newuser)
 
 def email_exists(email):
