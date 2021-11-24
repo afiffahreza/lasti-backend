@@ -1,36 +1,14 @@
 from fastapi import APIRouter
 from typing import List, Optional
 import db as connection
-from bson import ObjectId
-from json import dumps
-from schematics.models import Model
-from schematics.types import StringType, EmailType, ListType, IntType
-from pydantic import BaseModel
+from schemas import userModel
 
 router = APIRouter()
 
-class User(Model):
-    user_id = ObjectId()
-    email = EmailType(required=True)
-    name = StringType(required=True)
-    password = StringType(required=True)
-    money = IntType(required=True)
-    plates = ListType(StringType)
-
-class UserCreate(BaseModel):
-    email: str
-    name: str
-    password: str
-
-class UserLogin(BaseModel):
-    email: str
-    password: str
-
-
 # funtion to create and assign values to the instanse of class User created
 def create_user(email, username, password):
-    newuser = User()
-    newuser.user_id = ObjectId()
+    newuser = userModel.User()
+    newuser.user_id = userModel.ObjectId()
     newuser.email = email
     newuser.name = username
     newuser.password = password
@@ -58,7 +36,7 @@ def check_login_creds(email, password):
 
 # Signup endpoint with the POST method
 @router.post("/signup")
-async def signup(user: UserCreate):
+async def signup(user: userModel.UserCreate):
     newuser = user.dict()
     user_exists = False
     data = create_user(newuser['email'], newuser['name'], newuser['password'])
@@ -77,7 +55,7 @@ async def signup(user: UserCreate):
 
 # Login endpoint
 @router.post("/login")
-async def login(user: UserLogin):
+async def login(user: userModel.UserLogin):
     usernow = user.dict()
     def log_user_in(creds):
         if creds['email'] == usernow['email'] and creds['password'] == usernow['password']:
